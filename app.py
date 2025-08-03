@@ -3,32 +3,30 @@ import streamlit as st
 from openai import OpenAI
 import os
 
-# --- Set up Streamlit page ---
-st.set_page_config(page_title="🧠 PromptMentor Scanner Builder", page_icon="🧠")
-st.title("🧠 PromptMentor  💡 Scanner Builder")
-st.write("Let me help you build a trading scanner prompt step-by-step.")
+# Load from Streamlit secrets
+api_key = st.secrets["OPENAI_API_KEY"]
+client = OpenAI(api_key=api_key)
 
-# --- Load API Key ---
-client = OpenAI()
+st.set_page_config(page_title="🧠 PromptMentor 💡 Scanner Builder", layout="centered")
 
-# --- Step 1: Get user input ---
-user_input = st.text_input("What do you want to scan for?")
+st.title("🧠 PromptMentor 💡 Scanner Builder")
+st.markdown("Let me help you build a trading scanner prompt step-by-step.")
 
-# --- Step 2: Generate prompt using GPT-4 ---
-if user_input:
-    try:
-        with st.spinner("Generating your scanner prompt..."):
+query = st.text_input("What do you want to scan for?", placeholder="e.g., RSI breakout with volume confirmation")
+
+if query:
+    with st.spinner("Generating your optimized scanner prompt..."):
+        try:
             response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are a professional trading assistant who helps build technical scanner prompts."},
-                    {"role": "user", "content": f"Build a TradingView scanner prompt for: {user_input}"}
-                ]
+                    {"role": "system", "content": "You are an expert trading strategist. Help the user design a scanner prompt for TradingView or other platforms based on technical signals."},
+                    {"role": "user", "content": query}
+                ],
+                temperature=0.7
             )
-
-            output = response.choices[0].message.content
-            st.subheader("📤 Scanner Prompt")
-            st.code(output, language="markdown")
-
-    except Exception as e:
-        st.error(f"⚠️ Error: {e}")
+            prompt = response.choices[0].message.content
+            st.success("✅ Scanner prompt ready!")
+            st.code(prompt, language="markdown")
+        except Exception as e:
+            st.error(f"⚠️ Error: {e}")
