@@ -1,26 +1,34 @@
+# app.py
 import streamlit as st
-import openai
+from openai import OpenAI
 import os
 
-st.set_page_config(page_title="PromptMentor Scanner", layout="centered", initial_sidebar_state="collapsed")
-st.title("🧠 PromptMentor 🧠 Scanner Builder")
+# --- Set up Streamlit page ---
+st.set_page_config(page_title="🧠 PromptMentor Scanner Builder", page_icon="🧠")
+st.title("🧠 PromptMentor  💡 Scanner Builder")
 st.write("Let me help you build a trading scanner prompt step-by-step.")
 
-# Load API Key from environment
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# --- Load API Key ---
+client = OpenAI()
 
-# Step 1: User Input
-user_goal = st.text_input("What do you want to scan for?", placeholder="e.g., EMA crossover + RSI divergence")
+# --- Step 1: Get user input ---
+user_input = st.text_input("What do you want to scan for?")
 
-if user_goal:
-    with st.spinner("Thinking through your strategy..."):
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are an expert trading bot strategist. Help the user break down and expand their scanner idea with clarity."},
-                {"role": "user", "content": user_goal}
-            ]
-        )
-        answer = response.choices[0].message.content
-        st.subheader("🛠️ Generated Follow-Up Questions or Prompt:")
-        st.write(answer)
+# --- Step 2: Generate prompt using GPT-4 ---
+if user_input:
+    try:
+        with st.spinner("Generating your scanner prompt..."):
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a professional trading assistant who helps build technical scanner prompts."},
+                    {"role": "user", "content": f"Build a TradingView scanner prompt for: {user_input}"}
+                ]
+            )
+
+            output = response.choices[0].message.content
+            st.subheader("📤 Scanner Prompt")
+            st.code(output, language="markdown")
+
+    except Exception as e:
+        st.error(f"⚠️ Error: {e}")
